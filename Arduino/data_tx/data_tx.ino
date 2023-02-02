@@ -1,7 +1,6 @@
 void setup() {
   Serial.begin(57600);
   Serial1.begin(57600);
-  //pinMode(12, INPUT); // turn off serial tx LED signalling
 }
 
 
