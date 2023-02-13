@@ -1,6 +1,9 @@
+#include "rs232_init.h"
+
 void setup() {
   Serial.begin(57600);
   Serial1.begin(57600);
+  setup_serial("data_rx");
 }
 
 void loop() {
