@@ -12,6 +12,5 @@ unsigned long setupUSBSerial(int timout=10000){
   bool connected = (SerialUSB);
   unsigned long t0 = millis();
   while (!connected && (millis() - t0 < timout)) connected = (SerialUSB);
-  SerialUSB.printf("Ready, took %.2f s to initialise\n", (millis() - t0) / 1e3);
   return t0;
 }

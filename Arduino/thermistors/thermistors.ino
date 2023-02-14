@@ -1,5 +1,6 @@
 #include "thermistor.h"
 #include "xiao_utils.h"
+#include "rs232_init.h"
 
 // Defines for the serial comms
 #define SerialOut SerialUSB
@@ -34,6 +35,7 @@ void setup()
 {
   disableTXRXLEDs();
   setupUSBSerial();
+  setup_serial("10_thermistor_reader");
   Data.init();
 
   for(int i = 0; i<10; i++){
