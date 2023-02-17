@@ -47,7 +47,7 @@ struct data_10T {
       SerialOut.print(T[i]);
     }
     if(json) SerialOut.print("}");
-    SerialOut.print("\n\r");
+    SerialOut.print("\n");
   }
 
   bool shouldPrint()

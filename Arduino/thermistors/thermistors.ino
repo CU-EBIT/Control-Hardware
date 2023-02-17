@@ -1,3 +1,4 @@
+#define IDN "10_thermistor_reader"
 #include "thermistor.h"
 #include "xiao_utils.h"
 #include "rs232_init.h"
@@ -26,16 +27,12 @@ data_10T Data;
 
 int n = 0;
 
-unsigned long t0;
-unsigned long t1;
-unsigned long t2;
 unsigned long tick = 0;
 
 void setup()
 {
   disableTXRXLEDs();
   setupUSBSerial();
-  setup_serial("10_thermistor_reader");
   Data.init();
 
   for(int i = 0; i<10; i++){
@@ -48,9 +45,34 @@ void setup()
   }
 }
 
+#define BUF_LEN 32
+#define BUF_END (BUF_LEN - 1)
+#define BUF_MID (BUF_LEN / 2)
+int buf_i = BUF_MID;// Read buffer index
+char buf[BUF_LEN];  // Read buffer
+void read_from_usb(){
+    while (SerialUSB.available()) { // If anything comes in Serial (USB),
+    // buffer overflow?           // check if it is idn?, otherwise ignore it
+    if(buf_i > BUF_END){
+      memcpy(buf, buf+BUF_MID, BUF_MID);
+      buf_i = BUF_MID;
+    }
+    char r = SerialUSB.read();
+    buf[buf_i] = r;
+    if(r == '\r' or r == '\n') {
+      if(check_idn(buf + buf_i, buf_i));
+      else if(check_read(buf + buf_i, buf_i)){
+        Data.print(false);
+      }
+    }
+    buf_i++;
+  }
+}
+
 void loop()
 {
-  t0 = micros();
+  read_from_usb();
+  
   T[tick%10].update();
 
 #if REPORT_MODE == 0
@@ -62,7 +84,4 @@ void loop()
 #endif
   
   tick++;
-  t1 = micros() - t0;
-  if(!(tick%2048))
-    Data.print(false, false);
 }
