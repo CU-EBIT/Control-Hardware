@@ -5,24 +5,19 @@
 #ifndef SerialIn
 #define SerialIn SerialOut
 #endif
-
+#ifndef RATE
 #define RATE 9600
+#endif
 
 struct data_10T {
   int id = SENS_ID;
   String key = String("ID:") + id;
   float T[10];
 
-  void init(bool wait=false, int timout=10000)
+  void init(bool wait=false, bool usb_enabled=true, int timout=10000)
   {
-    if (!SerialOut)
-    {
-      SerialOut.begin(RATE);
-    }
-    if (SerialOut != SerialIn && !SerialIn)
-    {
-      SerialIn.begin(RATE);
-    }
+    SerialOut.begin(RATE);
+    SerialIn.begin(RATE);
     if (!wait) return;
 
     unsigned long t0 = millis();

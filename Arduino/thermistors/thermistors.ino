@@ -1,15 +1,18 @@
 #define IDN "10_thermistor_reader"
-#include "thermistor.h"
-#include "xiao_utils.h"
-#include "rs232_init.h"
 
 // Defines for the serial comms
-#define SerialOut SerialUSB
+#define SerialOut Serial1
 #define SerialIn SerialOut
+#define USB_SERIAL false // If true, we can use pins 6 and 7
+#define RATE 115200
 // Our id for serial
 #define SENS_ID 5
-// Include this after the 3 defines above
+
+
+#include "thermistor.h"
+#include "xiao_utils.h"
 #include "data_sending.h"
+#include "rs232_init.h"
 
 #define REPORT_MODE 0 // Modes: 0 -> temperatue, 1 -> resistance, 2 -> voltage
 
@@ -51,13 +54,14 @@ void setup()
 int buf_i = BUF_MID;// Read buffer index
 char buf[BUF_LEN];  // Read buffer
 void read_from_usb(){
-    while (SerialUSB.available()) { // If anything comes in Serial (USB),
+    while (SerialIn.available()) { // If anything comes in Serial (USB),
     // buffer overflow?           // check if it is idn?, otherwise ignore it
     if(buf_i > BUF_END){
       memcpy(buf, buf+BUF_MID, BUF_MID);
       buf_i = BUF_MID;
     }
-    char r = SerialUSB.read();
+    char r = SerialIn.read();
+    if (SerialUSB) SerialUSB.print(r);
     buf[buf_i] = r;
     if(r == '\r' or r == '\n') {
       if(check_idn(buf + buf_i, buf_i));
@@ -72,7 +76,7 @@ void read_from_usb(){
 void loop()
 {
   read_from_usb();
-  
+
   T[tick%10].update();
 
 #if REPORT_MODE == 0

@@ -68,6 +68,10 @@ float calculateB(float& logR2, float& T, float& T0)
 
 void Thermistor::update(void)
 {
+#if not USB_SERIAL
+  // If we are not usb connected, these pins are reserved
+  if(pin == 6 or pin == 7){ T = -1; return; }
+#endif
   int value = analogRead(pin);
   float v = value;
   v_arr[n % THERMISTOR_CACHE_SIZE] = value;

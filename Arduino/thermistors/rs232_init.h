@@ -1,3 +1,7 @@
+#ifndef SerialOut
+#define SerialOut SerialUSB
+#endif
+
 const char* readq = "read?";
 const char* idnq = "*idn?";
 
@@ -8,8 +12,8 @@ bool check_idn(char*buf, int len){
       isidn &= buf[j] == idnq[j + 5];
     }
     if(isidn){ 
-      SerialUSB.print(IDN);
-      SerialUSB.print('\n');
+      SerialOut.print(IDN);
+      SerialOut.print('\n');
     }
     return isidn;
 }
