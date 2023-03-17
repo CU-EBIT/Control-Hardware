@@ -1,19 +1,15 @@
 #include "thermistor.h"
 #include <Arduino.h>
 
-Thermistor::Thermistor(int read_pin, float R0, float R1)
+Thermistor::Thermistor(int read_pin)
 {
-  this->setR0(R0);
-  this->setR1(R1);
-  this->pin = read_pin;
-  pinMode(read_pin, INPUT);
+  // Set the pin, this also sets pinmode
+  this->setPin(read_pin);
+  // Set to 12 bit read resolution
   analogReadResolution(12);
+  // Initialise sum and cache array to 0
   this->v_sum = 0;
-}
-
-float Thermistor::getR(void)
-{
-  return R2;
+  memset(v_arr, 0, THERMISTOR_CACHE_SIZE);
 }
 
 float Thermistor::getT(void)
@@ -26,71 +22,51 @@ float Thermistor::getV(void)
   return v_avg;
 }
 
-void Thermistor::setPin(float pin)
+void Thermistor::setPin(int pin)
 {
   this->pin = pin;
+  // Also mark pin as input if needed
+  pinMode(pin, INPUT);
 }
 
-void Thermistor::setT0(float T0)
+void Thermistor::setParams(float V0, float V1, float VMax, float T0, float T1)
 {
-  this->T0 = T0;
+  T_0 = T0;
+  T_1 = T1;
+  V_0 = V0;
+  V_1 = V1;
+  V_max = VMax;
+  
+  float R_1, T_1_inv, T_diff_inv; // We need these two for B, but not later
+  R_0 = 1.0 / (V_max / V_0 - 1.0); // These result in "resistances" in reference to V_max and an unknown reference
+  R_1 = 1.0 / (V_max / V_1 - 1.0);
+  T_0_inv  = 1.0 / T_0;
+  T_1_inv  = 1.0 / T_1;
+  T_diff_inv = (T_1_inv - T_0_inv);
+  B_inv = (1.0 / log(R_1/R_0)) * T_diff_inv;
 }
 
-void Thermistor::setR0(float R0)
+void Thermistor::calculate(void)
 {
-  this->R0 = R0;
-}
-
-void Thermistor::setR1(float R1)
-{
-  this->R1 = R1;
-}
-
-void Thermistor::setB(float B)
-{
-  this->B = B;
-}
-
-void calculateR2(float& v, float& R0, float& R1, float& R2, float& logR2, float& v_avg)
-{
+  float v = v_sum;
+  float denom = n > THERMISTOR_CACHE_SIZE ? THERMISTOR_CACHE_SIZE : n;
   v_avg = v / THERMISTOR_CACHE_SIZE;
-  R2 = (4095.0 / v_avg) - 1;
-  R2 = R1 / R2;
-
-  logR2 = R2 / R0;
-  logR2 = log(logR2);
-}
-
-float calculateB(float& logR2, float& T, float& T0)
-{
-  return logR2 / (1 / T - 1 / T0);
+  float R = 1.0 / (V_max / v_avg - 1.0);
+  T = 1.0 / (log(R / R_0)*B_inv + T_0_inv);
 }
 
 void Thermistor::update(void)
 {
-#if not USB_SERIAL
-  // If we are not usb connected, these pins are reserved
-  if(pin == 6 or pin == 7){ T = -1; return; }
-#endif
   int value = analogRead(pin);
-  float v = value;
-  v_arr[n % THERMISTOR_CACHE_SIZE] = value;
-  if (n++ > THERMISTOR_CACHE_SIZE)
-  {
-    if (!v_sum)
-    {
-      for (int i = 0; i < THERMISTOR_CACHE_SIZE; i++) v_sum += v_arr[i];
-    }
-    else
-    {
-      v_sum += value;
-      v_sum -= v_arr[n % THERMISTOR_CACHE_SIZE];
-      v = v_sum;
-    }
-  }
-  else v *= THERMISTOR_CACHE_SIZE;
 
-  calculateR2(v, R0, R1, R2, logR2, v_avg);
+  // We place the current value in the cache, and then pop the next value from the cache.
+  // If cache isn't full, the popped value was set as 0 anyway, so nothing happens.
+  // this results in v_sum being a rolling sum of the last THERMISTOR_CACHE_SIZE values read
   
-  T = 1 / (logR2 / B + 1 / T0);
+  this->v_arr[this->n++ % THERMISTOR_CACHE_SIZE] = value;
+  this->v_sum += value;
+  this->v_sum -= this->v_arr[this->n % THERMISTOR_CACHE_SIZE];
+  
+  // Overflow protection
+  if(this->n > 2 * THERMISTOR_CACHE_SIZE) this->n -= THERMISTOR_CACHE_SIZE;
 }

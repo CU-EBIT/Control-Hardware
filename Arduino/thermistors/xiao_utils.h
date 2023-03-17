@@ -9,7 +9,7 @@ void disableTXRXLEDs()
 
 unsigned long setupUSBSerial(int timout=10000){
   SerialUSB.begin(1337);
-  bool connected = (SerialUSB);
+  bool connected = (SerialUSB); // Init USB serial, and wait for it to connect
   unsigned long t0 = millis();
   while (!connected && (millis() - t0 < timout)) connected = (SerialUSB);
   return t0;
