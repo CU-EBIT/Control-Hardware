@@ -8,13 +8,14 @@
 void setup() {
   SERIAL.begin(115200);      // Start usb output
   analogReadResolution(12);// Set ADC to 12 bit
+  analogSetAttenuation(ADC_6db);
 }
 
 void loop() {
   int sum = 0;
   // Read THERMISTOR_CACHE_SIZE values and accumulate as a sum
   for(int i = 0; i<THERMISTOR_CACHE_SIZE; i++){
-    sum += analogRead(CAL_PIN);
+    sum += analogReadMilliVolts(CAL_PIN);
   }
   // Compute average value
   float var = ((float)sum) / THERMISTOR_CACHE_SIZE;
