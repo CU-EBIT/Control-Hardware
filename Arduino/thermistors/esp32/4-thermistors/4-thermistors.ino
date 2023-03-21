@@ -24,9 +24,9 @@ BluetoothSerial SerialBT;
 #define T_HIGH 373.15
 
 // These two are in order of number of the sensor, not index in array
-const float V_0[SENS_COUNT] = {1128.67, 1128.67, 1128.67, 1128.67};
-const float V_1[SENS_COUNT] = {150.95,   150.95,  150.95, 150.95};
-const float V_m[SENS_COUNT] = {1340.61, 1340.61, 1340.61, 1340.61};
+const float V_0[SENS_COUNT] = {1133.84, 1127.84, 1121.09, 1127.34};
+const float V_1[SENS_COUNT] = {143.279, 150.134, 148.711, 149.927};
+const float V_m[SENS_COUNT] = {1349.35, 1345.86, 1333.27, 1339.36};
 
 // Pin to sensor mapping
 const int ind[SENS_COUNT] = { 0, 1, 2, 3};

@@ -1,5 +1,5 @@
 #define THERMISTOR_CACHE_SIZE 512 // This matches the value in thermistors.h
-#define CAL_PIN A0                // This is the pin we are calibrating for
+#define CAL_PIN A7                // This is the pin we are calibrating for
 
 // If the device to calibrate does not use SerialUSB, replace below
 // with the appropriate serial device.

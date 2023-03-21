@@ -3,13 +3,13 @@ import pyqtgraph as pg
 import numpy as np
 import time
 
-T = "MAX"
+T = "373.15_blue_A7"
 file = f'./{T}.vals'
 
 vars = []
 with serial.Serial("COM22", 115200) as ser:
     file = open(file, 'w')
-    for i in range(1024):
+    for i in range(256):
         var = ser.readline().decode().strip()
         vars.append(float(var))
         file.write(f'{var}\n')
